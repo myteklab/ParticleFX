@@ -551,9 +551,10 @@
                 }
             });
 
-            // Send ready message once engine is available
+            // Send ready message once engine is fully initialized
             function waitForReady() {
-                if (typeof getProjectData === 'function' && typeof loadProjectData === 'function') {
+                // Check that engine is initialized (canvas is set in initEngine on DOMContentLoaded)
+                if (typeof getProjectData === 'function' && typeof loadProjectData === 'function' && typeof canvas !== 'undefined' && canvas) {
                     // Apply preset if specified (for new effects)
                     if (presetParam && typeof loadPreset === 'function') {
                         loadPreset(presetParam);
