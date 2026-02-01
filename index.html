@@ -5,8 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Particle FX Designer</title>
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Embedded mode - hide standalone UI elements */
+        body.embedded-mode #btn-save,
+        body.embedded-mode #btn-export,
+        body.embedded-mode #btn-export-asset,
+        body.embedded-mode #btn-screenshot,
+        body.embedded-mode #btn-share {
+            display: none !important;
+        }
+
+        .embedded-banner {
+            display: none;
+            background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+            color: white;
+            text-align: center;
+            padding: 10px 20px;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+
+        body.embedded-mode .embedded-banner {
+            display: block;
+        }
+    </style>
 </head>
 <body>
+    <div class="embedded-banner" id="embeddedBanner">
+        Editing particle effect for GameMaker — click <strong>"Save & Use Effect"</strong> above when done
+    </div>
+
     <!-- Toast notifications -->
     <div id="toast-container"></div>
 
@@ -488,5 +516,58 @@
     <script src="js/history.js"></script>
     <script src="js/engine.js"></script>
     <script src="js/saveload.js"></script>
+    <script>
+        // ============================================
+        // EMBEDDED MODE (GameMaker integration)
+        // ============================================
+        (function() {
+            var params = new URLSearchParams(window.location.search);
+            var isEmbedded = params.get('embedded') === '1';
+            var embeddedProjectId = params.get('id') || null;
+            var presetParam = params.get('preset') || null;
+
+            if (!isEmbedded) return;
+
+            document.body.classList.add('embedded-mode');
+
+            // Listen for messages from parent (GameMaker)
+            window.addEventListener('message', function(event) {
+                var msg = event.data;
+                if (!msg || !msg.action) return;
+
+                if (msg.action === 'loadData') {
+                    // Parent is sending project data to load
+                    loadProjectData(msg.data);
+                }
+
+                if (msg.action === 'save') {
+                    // Parent wants us to serialize and send back data
+                    var data = getProjectData();
+                    event.source.postMessage({
+                        action: 'saveComplete',
+                        projectId: embeddedProjectId,
+                        data: data
+                    }, event.origin);
+                }
+            });
+
+            // Send ready message once engine is available
+            function waitForReady() {
+                if (typeof getProjectData === 'function' && typeof loadProjectData === 'function') {
+                    // Apply preset if specified (for new effects)
+                    if (presetParam && typeof loadPreset === 'function') {
+                        loadPreset(presetParam);
+                    }
+                    window.parent.postMessage({
+                        action: 'ready',
+                        projectId: embeddedProjectId
+                    }, '*');
+                } else {
+                    setTimeout(waitForReady, 100);
+                }
+            }
+            waitForReady();
+        })();
+    </script>
 </body>
 </html>
