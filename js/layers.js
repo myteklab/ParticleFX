@@ -363,6 +363,7 @@ function loadLayersFromData(data) {
 
     selectedLayerIndex = 0;
     renderLayerPanel();
+    updateUIFromEmitter();
 }
 
 /**
