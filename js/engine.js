@@ -123,6 +123,7 @@ function setupControls() {
     // Toolbar action buttons
     document.getElementById('btn-play').addEventListener('click', togglePlay);
     document.getElementById('btn-reset').addEventListener('click', resetParticles);
+    document.getElementById('btn-play-once').addEventListener('click', playOnce);
     document.getElementById('btn-share').addEventListener('click', shareProject);
     document.getElementById('btn-randomize').addEventListener('click', openRandomizeModal);
 
@@ -438,12 +439,13 @@ function loadPreset(presetName) {
  * Toggle play/pause for all layers
  */
 function togglePlay() {
-    const allLayers = getAllLayers();
+    clearTimeout(playOnceTimer);
+    setPlaying(!isPlaying);
+}
 
-    // Toggle based on current state
-    isPlaying = !isPlaying;
-
-    allLayers.forEach(layer => {
+function setPlaying(playing) {
+    isPlaying = playing;
+    getAllLayers().forEach(layer => {
         if (isPlaying) {
             layer.resume();
         } else {
@@ -466,6 +468,24 @@ function togglePlay() {
  */
 function resetParticles() {
     getAllLayers().forEach(layer => layer.clear());
+}
+
+// What one game trigger looks like. GameBuilder runs a triggered effect for
+// one particle lifetime with the first particle on the first frame, then
+// lets the rest die out. Same rule here, so a jump or pickup effect can be
+// judged before it is saved into a game. The continuous loop is the
+// designer's normal state; Play or Space brings it back.
+let playOnceTimer = null;
+function playOnce() {
+    clearTimeout(playOnceTimer);
+    let longest = 0;
+    getAllLayers().forEach(layer => {
+        layer.clear();
+        layer.accumulator = 1;
+        longest = Math.max(longest, layer.lifetime || 0);
+    });
+    setPlaying(true);
+    playOnceTimer = setTimeout(() => setPlaying(false), Math.max(50, longest * 1000));
 }
 
 /**
@@ -499,6 +519,10 @@ function handleKeyboard(e) {
     // R to reset particles
     if (e.key === 'r' && e.target.tagName !== 'INPUT') {
         resetParticles();
+    }
+    // T to play one trigger's worth
+    if (e.key === 't' && e.target.tagName !== 'INPUT') {
+        playOnce();
     }
 
     // Delete key to delete selected layer
