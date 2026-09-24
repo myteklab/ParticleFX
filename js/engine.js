@@ -28,6 +28,8 @@ function initEngine() {
 
     // Setup UI controls
     setupControls();
+    // The markup says Play while the engine starts running, so the first click paused it.
+    setPlaying(isPlaying);
 
     // Setup canvas click
     canvas.addEventListener('click', handleCanvasClick);
