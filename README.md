@@ -2,6 +2,8 @@
 
 A browser-based particle effect designer for creating visual effects like fire, smoke, sparkles, explosions, and more. Design multi-layer particle systems with real-time preview and export them as JSON for use in games.
 
+**Try it in your browser, no account needed:** [mytekdev.com/tools/particlefx](https://mytekdev.com/tools/particlefx). The page has a live demo and explains what students learn from it.
+
 ## Features
 
 - **Multi-layer particle systems** — Stack multiple emitter layers with independent settings
